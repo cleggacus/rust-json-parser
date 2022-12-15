@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "code": 200,
+            "message": "message 1",
+            "received": true
+        },
+        {
+            "code": 400,
+            "message": "error",
+            "received": false
+        },
+        {
+            "code": 500.1,
+            "message": "server error",
+            "received": false
+        }
+    ]
+}
