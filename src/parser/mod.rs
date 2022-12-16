@@ -1,7 +1,7 @@
-use self::{lexer::{Lexer, Token, Punctuation}, node::Value, node::Node};
+use self::{lexer::{Lexer, Punctuation, Token}, node::{Value, Node}};
 
-mod lexer;
 pub mod node;
+mod lexer;
 
 pub struct Parser {
     lexer: Lexer
