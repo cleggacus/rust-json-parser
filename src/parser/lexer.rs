@@ -1,6 +1,6 @@
 use std::{fs};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Punctuation {
     OpenCurly,
     CloseCurly,
@@ -10,7 +10,7 @@ pub enum Punctuation {
     Comma
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
     Punctuation(Punctuation),
     String(String),
@@ -22,8 +22,10 @@ pub enum Token {
 
 
 pub struct Lexer {
-    pub chars: Vec<char>,
-    char_position: usize
+    chars: Vec<char>,
+    char_position: usize,
+    tokens: Vec<Token>,
+    token_position: i64
 }
 
 impl Lexer {
@@ -35,14 +37,41 @@ impl Lexer {
             .flat_map(|line| line.chars())
             .collect();
 
-        return Self {
+        Self {
             chars,
-            char_position: 0
-        };
+            char_position: 0,
+            tokens: Vec::new(),
+            token_position: -1
+        }
+    }
+
+    pub fn current_token(&mut self) -> Option<Token> {
+        if self.token_position < 0 {
+            return None;
+        } 
+
+        return Some(self.tokens[self.token_position as usize].clone());
+    }
+
+    pub fn prev_token(&mut self) -> Option<Token> {
+        if self.token_position >= 0 {
+            self.token_position -= 1;
+        }
+
+        if self.token_position < 0 {
+            return None;
+        }
+
+        self.current_token()
     }
 
     pub fn next_token(&mut self) -> Option<Token> {
-        match self.next_char() {
+        if self.token_position < (self.tokens.len() as i64) - 1 {
+            self.token_position += 1;
+            return self.current_token();
+        }
+
+        let token = match self.next_char() {
             None => None,
             Some('{') => Some(Token::Punctuation(Punctuation::OpenCurly)),
             Some('}') => Some(Token::Punctuation(Punctuation::CloseCurly)),
@@ -54,9 +83,19 @@ impl Lexer {
             Some('f') => return self.collect_false(),
             Some('n') => return self.collect_null(),
             Some('"') => return self.collect_string(),
-            Some('1'..='9' | '-') => self.collect_number(),
+            Some('0'..='9' | '-') => self.collect_number(),
             _ => None
+        };
+
+        match token {
+            None => None,
+            Some(token) => {
+                self.tokens.push(token.clone());
+                self.token_position += 1;
+                self.current_token()
+            }
         }
+
     }
 
     fn collect_string(&mut self) -> Option<Token> {
@@ -91,6 +130,10 @@ impl Lexer {
             value.push(c);
         }
 
+        self.decrement_char();
+
+        // println!("{}", value);
+
         let value: f64 = value.parse().unwrap();
 
         Some(Token::Number(value))
@@ -100,7 +143,7 @@ impl Lexer {
         match self.next_char() {
             None => None,
             Some(c) => match c {
-                '0'..='9' | '.' => Some(c),
+                '0'..='9' | '.' | '-' => Some(c),
                 _ => None
             }
         }

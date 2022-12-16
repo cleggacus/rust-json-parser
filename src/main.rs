@@ -1,26 +1,17 @@
-use parser::lexer::Lexer;
+use parser::{Parser};
 
 mod parser;
 
-fn print_next_token(lexer: &mut Lexer) -> bool{
-    match lexer.next_token() {
-        None => {
-            println!("None");
-            return true;
-        },
-        Some(token) => {
-            println!("{:?}", token);
-            return false;
-        }
-    }
-}
-
 fn main() {
-    let mut lexer = Lexer::new("data.json");
+    let mut parser = Parser::new("large_data.json");
 
-    loop {
-        if print_next_token(&mut lexer) {
-            break;
-        }
-    }
+    let root = parser.parse_value().unwrap();
+
+    let barnaul = &root[78];
+
+    println!(
+        "{} at {}", 
+        barnaul["name"], 
+        barnaul["geolocation"]["coordinates"]
+    );
 }
